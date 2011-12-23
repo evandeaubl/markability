@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 """html2text: Turn HTML into equivalent Markdown-structured text."""
-__version__ = "3.11 dev"
+__version__ = "3.200.1"
 __author__ = "Aaron Swartz (me@aaronsw.com)"
 __copyright__ = "(C) 2004-2008 Aaron Swartz. GNU GPL 3."
 __contributors__ = ["Martin 'Joey' Schulze", "Ricardo Reyes", "Kevin Jay North"]
@@ -56,6 +56,7 @@ GOOGLE_LIST_INDENT = 36
 
 IGNORE_ANCHORS = False
 IGNORE_IMAGES = False
+IGNORE_EMPHASIS = False
 
 ### Entity Nonsense ###
 
@@ -113,7 +114,10 @@ def dumb_css_parser(data):
 
     # parse the css. reverted from dictionary compehension in order to support older pythons
     elements =  [x.split('{') for x in data.split('}') if '{' in x.strip()]
-    elements = dict([(a.strip(), dumb_property_dict(b)) for a, b in elements])
+    try:
+        elements = dict([(a.strip(), dumb_property_dict(b)) for a, b in elements])
+    except ValueError:
+        elements = {} # not that important
 
     return elements
 
@@ -183,6 +187,7 @@ class HTML2Text(HTMLParser.HTMLParser):
         self.google_list_indent = GOOGLE_LIST_INDENT
         self.ignore_links = IGNORE_ANCHORS
         self.ignore_images = IGNORE_IMAGES
+        self.ignore_emphasis = IGNORE_EMPHASIS
         self.google_doc = False
         self.ul_item_mark = '*'
 
@@ -419,9 +424,9 @@ class HTML2Text(HTMLParser.HTMLParser):
             else:
                 self.blockquote -= 1
                 self.p()
-
-        if tag in ['em', 'i', 'u']: self.o("_")
-        if tag in ['strong', 'b']: self.o("**")
+        
+        if tag in ['em', 'i', 'u'] and not self.ignore_emphasis: self.o("_")
+        if tag in ['strong', 'b'] and not self.ignore_emphasis: self.o("**")
         if tag in ['del', 'strike']:
             if start:
                 self.o("<"+tag+">")
@@ -719,6 +724,8 @@ def main():
 
     p = optparse.OptionParser('%prog [(filename|url) [encoding]]',
                               version='%prog ' + __version__)
+    p.add_option("--ignore-emphasis", dest="ignore_emphasis", action="store_true", 
+        default=IGNORE_EMPHASIS, help="don't include any formatting for emphasis")
     p.add_option("--ignore-links", dest="ignore_links", action="store_true",
         default=IGNORE_ANCHORS, help="don't include any formatting for links")
     p.add_option("--ignore-images", dest="ignore_images", action="store_true",
@@ -774,6 +781,7 @@ def main():
 
     h.body_width = options.body_width
     h.list_indent = options.list_indent
+    h.ignore_emphasis = options.ignore_emphasis
     h.ignore_links = options.ignore_links
     h.ignore_images = options.ignore_images
     h.google_doc = options.google_doc
