@@ -5,9 +5,10 @@ from readability.htmls import build_doc
 import urllib2
 import html2text
 
-def markdownify(url_list):
+def markdownify(url_list, **options):
     articles = []
     images = []
+    paragraph_links = options['paragraph_links']
     for url in url_list:
         req = urllib2.Request(url,None,{'Referer': url_list[0]})
         html = urllib2.urlopen(req).read()
@@ -19,8 +20,9 @@ def markdownify(url_list):
         articles.append(document.summary())
 
     markdown_articles = []
-    for article in articles:
-        h = html2text.HTML2Text()
+    for (article, url) in zip(articles, url_list):
+        h = html2text.HTML2Text(baseurl=url)
         h.inline_links = False
+        h.links_each_paragraph = (paragraph_links and 1) or 0
         markdown_articles.append(h.handle(article))
     return u"\n\n----\n\n".join(markdown_articles).encode("utf-8")

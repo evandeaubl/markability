@@ -10,7 +10,9 @@ def url_form():
 @app.route("/u", methods=['POST'])
 def convert_to_markdown():
     url = request.form['u']
-    response = make_response(markdownify([url]))
+    paralink = request.form.getlist('paralink')
+    paragraph_link = (len(paralink) != 0)
+    response = make_response(markdownify([url], paragraph_links = paragraph_link))
     response.headers['Content-Type'] = 'text/plain; charset="utf-8"'
     return response
 
