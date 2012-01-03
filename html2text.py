@@ -693,7 +693,7 @@ class HTML2Text(HTMLParser.HTMLParser):
         newlines = 0
         for para in text.split("\n"):
             if len(para) > 0:
-                if para[0] != ' ' and para[0] != '-' and para[0] != '*':
+                if para[0] != ' ' and para[0] != '-':
                     for line in wrap(para, self.body_width):
                         result += line + "\n"
                     result += "\n"
