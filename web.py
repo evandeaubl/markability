@@ -12,7 +12,9 @@ def convert_to_markdown():
     url = request.form['u']
     paralink = request.form.getlist('paralink')
     paragraph_link = (len(paralink) != 0)
-    response = make_response(markdownify([url], paragraph_links = paragraph_link))
+    textwrap = request.form.getlist('textwrap')
+    text_wrap = (len(textwrap) != 0)
+    response = make_response(markdownify([url], paragraph_links = paragraph_link, wrap_text = text_wrap))
     response.headers['Content-Type'] = 'text/plain; charset="utf-8"'
     return response
 
