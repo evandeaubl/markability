@@ -22,12 +22,13 @@ def markdownify(url_list, **options):
         articles.append(document.summary())
 
     markdown_articles = []
-    if preamble:
-        markdown_articles.append("Article title: %s\nOriginal URL: %s" % (readable_title, url_list[0]))
     for (article, url) in zip(articles, url_list):
         h = html2text.HTML2Text(baseurl=url)
         h.inline_links = False
         h.links_each_paragraph = (paragraph_links and 1) or 0
         h.body_width = (wrap_text and 78) or 0
         markdown_articles.append(h.handle(article))
-    return u"\n\n----\n\n".join(markdown_articles).encode("utf-8")
+    combined_article = u"\n\n----\n\n".join(markdown_articles)
+    if preamble:
+        combined_article = (u"Title:        %s  \nOriginal URL: %s\n\n" % (readable_title, url_list[0])) + combined_article
+    return combined_article.encode("utf-8")
